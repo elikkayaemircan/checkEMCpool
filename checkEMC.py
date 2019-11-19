@@ -44,25 +44,32 @@ def main():
         sys.exit(2)
     else:
         Msg_Nagios = ""
+        Msg_PerfOM = ""
     
         for line in ans.stdout:
         
             namePool = re.search(r"Pool Name:.*", line)
             if namePool:
-                Msg_Nagios = Msg_Nagios+namePool.group()+", "
+                Msg_InNagi = " ".join(namePool.group().split())+", "
+                Msg_Nagios = Msg_Nagios+Msg_InNagi
+                Msg_InPerf = (namePool.group().split(":",1)[1]).replace(" ", "")+"="
+                Msg_PerfOM = Msg_PerfOM+Msg_InPerf
         
             usagePool = re.search(r"Percent Full:.*", line)
             if usagePool:
-                Msg_Nagios = Msg_Nagios+usagePool.group()+" ~ "
+                Msg_InNagi = " ".join(usagePool.group().split())+" ~ "
+                Msg_Nagios = Msg_Nagios+Msg_InNagi
+                Msg_InPerf = (usagePool.group().split(":",1)[1]).replace(" ", "")+";"
+                Msg_PerfOM = Msg_PerfOM+Msg_InPerf
         
         if re.search("9[0-9].[0-9][0-9][0-9]", Msg_Nagios) or re.search("100.000", Msg_Nagios):
-            subprocess.call(["echo", Msg_Nagios])
+            subprocess.call(["echo", Msg_Nagios, "|", Msg_PerfOM])
             sys.exit(2)
         elif re.search("8[0-9].[0-9][0-9][0-9]", Msg_Nagios):
-            subprocess.call(["echo", Msg_Nagios])
+            subprocess.call(["echo", Msg_Nagios, "|", Msg_PerfOM])
             sys.exit(1)
         elif re.search("[0-7][0-9].[0-9][0-9][0-9]", Msg_Nagios):
-            subprocess.call(["echo", Msg_Nagios])
+            subprocess.call(["echo", Msg_Nagios, "|", Msg_PerfOM])
             sys.exit(0)
         else:
             subprocess.call(["echo", "Please check the system at EMC Unisphere Web Application. Unknown Message in STDOUT:", str(ans.stdout)])
